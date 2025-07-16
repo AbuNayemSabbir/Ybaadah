@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Ebaadah</string>
+    <string name="app_name">Ybadat</string>
     <string name="EditPage">Select Phone Silent Times</string>
     <string name="ShareButton">Tap to stop the service</string>
     <string name="EditTimeSaveButtonName">Activate Selected Service</string>
@@ -13,10 +13,11 @@
     <string name="enter_finish_time">Enter End Time</string>
     <string name="edit_namaj_time">Reschedule Times</string>
 
-    <string name="fotter">If any query : 01975- 890-890\nDedicated to: Syed Asif Arafat Sadeque.</string>
+    <string name="fotter">If any query : 01975- 890-890\nDedicated to: Syed Asif Arafat Sadeque</string>
     <string name="stopServices">Temporarily Stop Service</string>
     <string name="startServices">Restart Service</string>
     <string name="our_mission">Our Mission</string>
     <string name="mission_title">Our Mission and Vision</string>
     <string name="mission_description">Our mission is to help Muslims maintain proper prayer times by automatically silencing their phones during prayer times.</string>
+    <string name="toggle_warning_notifications">Toggle Warning Notifications</string>
 </resources>

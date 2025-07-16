@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/background"
-    android:padding="16dp"
+    android:padding="8dp"
     tools:context=".HomeActivity">
 <LinearLayout
     android:layout_width="match_parent"
@@ -20,34 +21,58 @@
         android:orientation="vertical">
         <!-- Cards will be dynamically added here -->
     </LinearLayout>
-    <Button
-        android:id="@+id/stopServices"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="16dp"
-        android:textColor="#fff"
-        android:background="@drawable/custom_button"
-        android:text="@string/stopServices" />
-    <Button
-        android:id="@+id/startServices"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginRight="16dp"
-        android:layout_marginLeft="16dp"
-        android:layout_marginBottom="16dp"
-        android:textColor="#fff"
-        android:background="@drawable/custom_button"
-        android:text="@string/startServices" />
-    <Button
-        android:id="@+id/editNamajButton"
+    
+    <!-- The stopServices and startServices buttons have been removed -->
+    
+    <!-- Replace the existing edit button with card-style button -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/editNamajButtonCard"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginLeft="16dp"
         android:layout_marginRight="16dp"
         android:layout_marginBottom="30dp"
-        android:textColor="#fff"
-        android:background="@drawable/custom_button"
-        android:text="@string/edit_namaj_time" />
+        android:layout_marginTop="16dp"
+        app:cardCornerRadius="8dp"
+        app:cardElevation="4dp"
+        app:cardBackgroundColor="#00BCD4">
+
+        <Button
+            android:id="@+id/editNamajButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="?android:attr/selectableItemBackground"
+            android:padding="12dp"
+            android:text="@string/edit_namaj_time"
+            android:textColor="#FFFFFF"
+            android:textStyle="bold"
+            android:textSize="16sp" />
+    </androidx.cardview.widget.CardView>
+
+    <!-- Warning Notification Toggle Button -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/warningNotificationButtonCard"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="16dp"
+        android:layout_marginRight="16dp"
+        android:layout_marginBottom="30dp"
+        app:cardCornerRadius="8dp"
+        app:cardElevation="4dp"
+        app:cardBackgroundColor="#00BCD4">
+
+        <Button
+            android:id="@+id/warningNotificationButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="?android:attr/selectableItemBackground"
+            android:padding="12dp"
+            android:text="@string/toggle_warning_notifications"
+            android:textColor="#FFFFFF"
+            android:textStyle="bold"
+            android:textSize="16sp" />
+    </androidx.cardview.widget.CardView>
+    
 </LinearLayout>
 
 </ScrollView>

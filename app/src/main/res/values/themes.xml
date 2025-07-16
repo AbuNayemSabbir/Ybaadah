@@ -30,9 +30,16 @@
         <item name="materialButtonStyle">@style/Widget.Ebda.Button</item>
         <item name="materialCardViewStyle">@style/Widget.Ebda.CardView</item>
         <item name="textInputStyle">@style/Widget.Ebda.TextInputLayout</item>
-    </style>
 
+    </style>
+    <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
+        <!-- Customize your theme here -->
+        <item name="colorPrimary">#00BCD4</item>
+        <item name="colorPrimaryDark">#0097A7</item>
+        <item name="colorAccent">#00BCD4</item>
+    </style>
     <style name="Theme.Ebda" parent="Base.Theme.Ebda" />
     
     <!-- Removed the Splash Screen theme that was causing errors -->
 </resources>
+

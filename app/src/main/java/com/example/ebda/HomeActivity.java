@@ -9,6 +9,8 @@ import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.Switch;
+import android.widget.CompoundButton;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -30,14 +32,12 @@ public class HomeActivity extends AppCompatActivity {
 
         namajLayout = findViewById(R.id.namajLayout);
         Button editNamajButton = findViewById(R.id.editNamajButton);
-        Button startServicesButton = findViewById(R.id.startServices);
-        Button stopServicesButton = findViewById(R.id.stopServices);
+
         namajPreferences = getSharedPreferences("NamajPreferences", MODE_PRIVATE);
 
         displayNamajCards();
 
-        String[] namajTitles = {"ফজর", "যোহর", "আসর", "মাগরিব", "এশা", "জুমা"};
-
+        String[] namajTitles = {"Fajr", "Dhuhr", "Asr", "Maghrib", "Isha", "Jummah"};
 
         for (String namajTitle : namajTitles) {
             String startTimeKey = "startTime_" + namajTitle;
@@ -51,34 +51,57 @@ public class HomeActivity extends AppCompatActivity {
             }
         }
 
-// Check if no namaj data is found, then stop the foreground service
-        if (!namajDataFound) {
-            stopForegroundService();
-            startServicesButton.setVisibility(View.GONE);
-            stopServicesButton.setVisibility(View.GONE);
-        }
-
-
         editNamajButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 goToCardActivity();
             }
         });
-        startServicesButton.setOnClickListener(new View.OnClickListener() {
+
+        // Add warning notification button functionality
+        Button warningNotificationButton = findViewById(R.id.warningNotificationButton);
+        SharedPreferences preferences = getSharedPreferences("AppPreferences", MODE_PRIVATE);
+        boolean notificationsEnabled = preferences.getBoolean("warningNotificationsEnabled", true);
+        
+        // Set initial button text based on current state
+        updateWarningButtonText(warningNotificationButton, notificationsEnabled);
+        
+        // In the warningNotificationButton onClick listener
+        warningNotificationButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startForegroundService();
+                // Toggle notification state
+                boolean currentState = preferences.getBoolean("warningNotificationsEnabled", true);
+                boolean newState = !currentState;
+                
+                // Save the new state
+                SharedPreferences.Editor editor = preferences.edit();
+                editor.putBoolean("warningNotificationsEnabled", newState);
+                editor.apply();
+                
+                // Update button text
+                updateWarningButtonText(warningNotificationButton, newState);
+                
+                // Show feedback to user
+                String message = newState ? "Warning notifications enabled" : "Warning notifications disabled";
+                Toast.makeText(HomeActivity.this, message, Toast.LENGTH_SHORT).show();
+                
+                // Restart the service to apply changes if any prayer is active
+                if (isAnyPrayerActive()) {
+                    stopForegroundService();
+                    startForegroundService();
+                }
             }
         });
-        stopServicesButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                stopForegroundService();
-            }
-        });
+    }
 
-
+    // Helper method for warning notification button
+    private void updateWarningButtonText(Button button, boolean enabled) {
+        if (enabled) {
+            button.setText("Disable Warning Notifications");
+        } else {
+            button.setText("Enable Warning Notifications");
+        }
     }
 
     @Override
@@ -117,63 +140,106 @@ public class HomeActivity extends AppCompatActivity {
         LayoutInflater inflater = LayoutInflater.from(this);
         SimpleDateFormat sdf24hr = new SimpleDateFormat("HH:mm", Locale.getDefault());
         SimpleDateFormat sdf12hr = new SimpleDateFormat("hh:mm a", Locale.getDefault()); // 12-hour format
-
+    
+        // Clear existing cards
+        namajLayout.removeAllViews();
+    
         // List of prayer titles
         String[] prayerTitles = {"Fajr", "Dhuhr", "Asr", "Maghrib", "Isha", "Jummah"};
-
+    
         for (String prayerTitle : prayerTitles) {
             String startTimeKey = "startTime_" + prayerTitle;
             String finishTimeKey = "finishTime_" + prayerTitle;
-
+            String activeKey = "active_" + prayerTitle;
+            String deactivateKey = "deactivate_" + prayerTitle;
+    
             // Check if prayer data is available in SharedPreferences
-            if (!namajPreferences.getString(startTimeKey,"").isEmpty() && !namajPreferences.getString(finishTimeKey,"").isEmpty()) {
-
+            if (!namajPreferences.getString(startTimeKey, "").isEmpty() &&
+                !namajPreferences.getString(finishTimeKey, "").isEmpty()) {
+    
+                View cardView = inflater.inflate(R.layout.prayer_card, namajLayout, false);
+    
+                TextView titleTextView = cardView.findViewById(R.id.cardTitleTextView);
+                TextView timeTextView = cardView.findViewById(R.id.cardTimeTextView);
+                Switch activeSwitch = cardView.findViewById(R.id.activeSwitch);
+    
                 String startTime = namajPreferences.getString(startTimeKey, "");
                 String finishTime = namajPreferences.getString(finishTimeKey, "");
-
+                boolean isActive = namajPreferences.getBoolean(activeKey, true);
+                boolean isDeactivated = namajPreferences.getBoolean(deactivateKey, false);
+    
+                // Format times for display
+                String displayStartTime = "";
+                String displayFinishTime = "";
                 try {
-                    // Convert start time and finish time to 12-hour format
-                    Date startTime24hr = sdf24hr.parse(startTime);
-                    Date finishTime24hr = sdf24hr.parse(finishTime);
-                    String startTime12hr = sdf12hr.format(startTime24hr);
-                    String finishTime12hr = sdf12hr.format(finishTime24hr);
-
-                    // Inflate the namaj card layout
-                    View namajCard = inflater.inflate(R.layout.card_layouts, namajLayout, false);
-
-                    // Set namaj title
-                    TextView titleTextView = namajCard.findViewById(R.id.titleTextView);
-                    titleTextView.setText(prayerTitle);
-
-                    // Set start time (in 12-hour format)
-                    TextView startTimeTextView = namajCard.findViewById(R.id.startTimeTextView);
-                    startTimeTextView.setText(startTime12hr);
-
-                    // Set finish time (in 12-hour format)
-                    TextView finishTimeTextView = namajCard.findViewById(R.id.finishTimeTextView);
-                    finishTimeTextView.setText(" -  " + finishTime12hr);
-
-                    Button closeButton = namajCard.findViewById(R.id.close);
-                    // Set tag for the close button to the namaj title
-                    closeButton.setTag(prayerTitle);
-                    namajLayout.addView(namajCard);
-                    namajLayout.setVisibility(View.VISIBLE);
-                    // Set click listener for the close button
-                    closeButton.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            // Retrieve the namaj title from the tag
-                            String namajTitleToDelete = (String) v.getTag();
-                            deleteNamajPreferences(namajTitleToDelete);
-                            refresh();
-                        }
-                    });
-                    // Add the namaj card to the layout
+                    Date startDate = sdf24hr.parse(startTime);
+                    Date finishDate = sdf24hr.parse(finishTime);
+                    if (startDate != null && finishDate != null) {
+                        displayStartTime = sdf12hr.format(startDate);
+                        displayFinishTime = sdf12hr.format(finishDate);
+                    }
                 } catch (ParseException e) {
                     e.printStackTrace();
                 }
+    
+                titleTextView.setText(prayerTitle);
+                timeTextView.setText(String.format("%s - %s", displayStartTime, displayFinishTime));
+    
+                // Set switch state and text based on active and deactivate status
+                activeSwitch.setChecked(!isDeactivated && isActive);
+                activeSwitch.setText(isDeactivated ? "Activate" : "Deactivate");
+    
+                // Set switch listener to update active/deactivate status
+                final String finalPrayerTitle = prayerTitle;
+                activeSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                    @Override
+                    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                        // Stop the service first
+                        stopForegroundService();
+    
+                        // Update only this prayer's deactivation status
+                        SharedPreferences.Editor editor = namajPreferences.edit();
+                        editor.putBoolean(deactivateKey, !isChecked);
+                        editor.apply();
+    
+                        // Update switch text
+                        activeSwitch.setText(isChecked ? "Deactivate" : "Activate");
+    
+                        if (isChecked) {
+                            Toast.makeText(HomeActivity.this, finalPrayerTitle + " activated", Toast.LENGTH_SHORT).show();
+                        } else {
+                            Toast.makeText(HomeActivity.this, finalPrayerTitle + " deactivated", Toast.LENGTH_SHORT).show();
+                        }
+    
+                        // Restart the service if any prayer is still active
+                        if (isAnyPrayerActive()) {
+                            startForegroundService();
+                        }
+                    }
+                });
+    
+                namajLayout.addView(cardView);
             }
         }
+    }
+    
+    // Helper method to check if any prayer is active
+    private boolean isAnyPrayerActive() {
+        String[] prayerTitles = {"Fajr", "Dhuhr", "Asr", "Maghrib", "Isha", "Jummah"};
+        
+        for (String prayerTitle : prayerTitles) {
+            String activeKey = "active_" + prayerTitle;
+            String deactivateKey = "deactivate_" + prayerTitle;
+            
+            boolean isActive = namajPreferences.getBoolean(activeKey, false);
+            boolean isDeactivated = namajPreferences.getBoolean(deactivateKey, true);
+            
+            if (isActive && !isDeactivated) {
+                return true;
+            }
+        }
+        
+        return false;
     }
     private void deleteNamajPreferences(String namajTitle) {
         // Delete SharedPreferences values associated with the given namaj title
