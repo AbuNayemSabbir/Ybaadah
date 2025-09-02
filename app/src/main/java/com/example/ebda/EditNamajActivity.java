@@ -10,6 +10,7 @@ import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 // Add this import if not already present
@@ -27,6 +28,7 @@ import androidx.cardview.widget.CardView;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
+import java.lang.reflect.Field;
 import java.util.Calendar;
 import java.util.Locale;
 
@@ -285,13 +287,15 @@ public class EditNamajActivity extends AppCompatActivity {
     }
 
     // Method to show time picker dialog
+    // Update the showTimePickerDialog method to use keyboard input
     private void showTimePickerDialog(final EditText editText) {
         Calendar calendar = Calendar.getInstance();
         int hour = calendar.get(Calendar.HOUR_OF_DAY);
         int minute = calendar.get(Calendar.MINUTE);
-
+    
         TimePickerDialog timePickerDialog = new TimePickerDialog(
                 this,
+                R.style.TimePickerTheme, // Add this custom style
                 new TimePickerDialog.OnTimeSetListener() {
                     @Override
                     public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
@@ -303,7 +307,20 @@ public class EditNamajActivity extends AppCompatActivity {
                 minute,
                 android.text.format.DateFormat.is24HourFormat(this)
         );
-
+        
+        // Set input mode to keyboard
+        timePickerDialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
+        
+        // Try to show keyboard input directly
+        try {
+            Field field = timePickerDialog.getClass().getDeclaredField("mTimePicker");
+            field.setAccessible(true);
+            TimePicker timePicker = (TimePicker) field.get(timePickerDialog);
+            //timePicker.set(TimePicker.MODE_SPINNER);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        
         timePickerDialog.show();
     }
 
